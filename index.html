@@ -529,6 +529,17 @@ function App(){
   const [burst,setBurst]=useState(false);
 
   const isSuperAdmin=user?.role==="superadmin";
+  // Auto-reset tabs if benevole tries to access forbidden sections
+  useEffect(()=>{
+    if(user?.role==="benevole"){
+      if(atab==="cartes"||atab==="inventaire")setAtab("actives");
+      if(page==="controle"||page==="dotation"||page==="superadmin")setPage("dashboard");
+    }
+    if(user?.role==="adjoint"){
+      if(atab==="inventaire")setAtab("actives");
+      if(page==="dotation"||page==="superadmin")setPage("dashboard");
+    }
+  },[page,atab,user]);
   const isAdjoint=user?.role==="adjoint"||isSuperAdmin;
   const isBenevole=user?.role==="benevole";
   const canDeleteLoc=isSuperAdmin;
@@ -939,7 +950,8 @@ function App(){
     </div>}
 
     {/* ══ CONTRÔLE ══ */}
-    {page==="controle"&&<div className="page">
+    {page==="controle"&&!canControle&&<div className="page"><div style={{textAlign:"center",padding:"60px 20px"}}><div style={{fontSize:48,marginBottom:16}}>🔒</div><div style={{fontSize:14,color:"var(--text-muted)"}}>Accès non autorisé</div></div></div>}
+    {page==="controle"&&canControle&&<div className="page">
       <div className="page-header"><div><div className="page-title">Contrôle<br/><span>Inventaire</span></div></div></div>
       <div className="tabs">
         <div className={`tab${ctrlTab==="new"?" active":""}`} onClick={()=>setCtrlTab("new")}>🔍 Nouveau</div>
@@ -986,7 +998,7 @@ function App(){
     </div>}
 
     {/* ══ DOTATION ══ */}
-    {page==="dotation"&&!canDotation&&<div className="page"><div style={{textAlign:"center",padding:"60px 20px"}}><div style={{fontSize:48,marginBottom:16}}>🔒</div><div style={{fontSize:14,color:"var(--text-muted)"}}>Accès réservé au Super Admin</div></div></div>}
+    {page==="dotation"&&!canDotation&&<div className="page"><div style={{textAlign:"center",padding:"60px 20px"}}><div style={{fontSize:48,marginBottom:16}}>🔒</div><div style={{fontSize:14,color:"var(--text-muted)",marginBottom:8}}>Accès réservé au Super Admin</div><div style={{fontSize:12,color:"var(--text-dim)"}}>Contactez un Super Admin pour gérer le matériel</div></div></div>}
     {page==="dotation"&&canDotation&&(dotOk?<div className="page">
       <div className="page-header"><div><div className="page-title">Dotation<br/><span>Matérielle</span></div></div><button className="btn-sm" onClick={()=>setDotOk(false)}>🔒</button></div>
       <div className="tabs">{CATS_DOT.map(c=><div key={c.key} className={`tab${dtab===c.key?" active":""}`} onClick={()=>{setDtab(c.key);setShowF(false);setEditId(null);}}><CatTabIcon icon={c.icon}/>{c.label} ({(dot[c.key]||[]).length})</div>)}</div>
